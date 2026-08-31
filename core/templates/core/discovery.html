@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Discovery — Network-DNS-Monitoring{% endblock %}
+
+{% block content %}
+<h2 class="muted" style="font-size:13px; text-transform:uppercase; letter-spacing:.04em;">Discovered clients</h2>
+
+<div class="card">
+  {% if error %}
+    <p class="error-msg">{{ error }}</p>
+  {% elif clients %}
+    <table class="data-table">
+      <tr><th>Client name</th><th>IP addresses</th></tr>
+      {% for name, addrs in clients.items %}
+        <tr>
+          <td>{{ name }}</td>
+          <td>{{ addrs|join:", " }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p class="muted">No clients discovered yet. This list populates as devices query the resolver.</p>
+  {% endif %}
+
+  {% if source_map %}
+    <h2 style="margin-top:20px;">By source interface</h2>
+    {% for source, names in source_map.items %}
+      <p><strong>{{ source }}</strong>
+        {% for name, addrs in names.items %}
+          — {{ name }}: {{ addrs|join:", " }}
+        {% endfor %}
+      </p>
+    {% endfor %}
+  {% endif %}
+</div>
+{% endblock %}

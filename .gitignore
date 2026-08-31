@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.dist-info/
+.pytest_cache/
+.mypy_cache/
+ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+/staticfiles/
+
+# Secrets & local runtime (loaded by run.bat, never committed)
+.env
+.env.*
+!.env.example
+.env.set.bat

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Sign up — Network-DNS-Monitoring{% endblock %}
+
+{% block content %}
+<div class="auth-shell">
+  <div class="auth-card">
+    <h1>Create account</h1>
+    <form method="post" action="{% url 'signup' %}">
+      {% csrf_token %}
+      <div style="text-align:left; margin-bottom:14px;">
+        {{ form.non_field_errors }}
+      </div>
+      <div style="margin-bottom:18px;">
+        <label style="display:block; font-size:12px; color:var(--muted); margin-bottom:6px;">Username</label>
+        {{ form.username }}
+      </div>
+      <div style="margin-bottom:14px;">
+        <label style="display:block; font-size:12px; color:var(--muted); margin-bottom:6px;">Password</label>
+        {{ form.password1 }}
+        <small class="muted">At least 8 chars, not too common.</small>
+      </div>
+      <div style="margin-bottom:22px;">
+        <label style="display:block; font-size:12px; color:var(--muted); margin-bottom:6px;">Confirm password</label>
+        {{ form.password2 }}
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;">Sign up</button>
+    </form>
+    <div class="links">
+      <a href="{% url 'login' %}">Already have an account</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

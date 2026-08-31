@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Setup — Network-DNS-Monitoring{% endblock %}
+
+{% block content %}
+<h2 class="muted" style="font-size:13px; text-transform:uppercase; letter-spacing:.04em;">Setup</h2>
+
+<div class="card">
+  <h1>Profile</h1>
+  {% if conf_error %}
+    <p class="error-msg">{{ conf_error }}</p>
+  {% endif %}
+  {% if message %}
+    {% if message.error %}
+      <p class="error-msg">{{ message.error }}</p>
+    {% elif message.success %}
+      <p class="success-msg">{{ message.success }}</p>
+    {% endif %}
+  {% endif %}
+
+  <p>
+    <span class="muted">Active profile:</span>
+    <strong id="profile-value">
+      {% if profile %}{{ profile }}{% else %}<span class="muted">not configured</span>{% endif %}
+    </strong>
+  </p>
+
+  <form method="post" action="{% url 'setup' %}" style="margin-top:14px;">
+    {% csrf_token %}
+    <div class="field-row">
+      <div>
+        <label style="display:block; font-size:12px; color:var(--muted); margin-bottom:6px;">Profile ID (6 hex chars)</label>
+        <input type="text" name="profile" maxlength="6" placeholder="e.g. a1b2c3" value="{{ profile }}" pattern="[0-9a-f]{6}" required>
+      </div>
+      <div style="align-self:flex-end;">
+        <button type="submit" class="btn btn-primary" style="width:100%;">Apply &amp; restart</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <h1>Install instructions</h1>
+  <p class="muted">This clone manages an already-installed <code>Network-DNS-Monitoring</code> daemon. To install on this machine:</p>
+  <ul class="muted">
+    <li>Windows: run the bundled <kbd>install.ps1</kbd> as Administrator, or <kbd>nextdns.exe install -profile=abcdef</kbd>.</li>
+    <li>Linux/macOS: <kbd>curl -sfL https://nextdns.io/install | sh</kbd>.</li>
+  </ul>
+  <p class="muted">Detected binary:
+    {% if binary %}
+      <code>{{ binary }}</code>
+    {% else %}
+      <span class="muted">not found</span>
+    {% endif %}
+  </p>
+</div>
+{% endblock %}

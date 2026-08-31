@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Settings — Network-DNS-Monitoring{% endblock %}
+
+{% block content %}
+<h2 class="muted" style="font-size:13px; text-transform:uppercase; letter-spacing:.04em;">Settings</h2>
+
+<div class="card">
+  <h1>Daemon configuration</h1>
+  {% if conf_error %}
+    <p class="error-msg">{{ conf_error }}</p>
+  {% elif config %}
+    <table class="data-table">
+      <tr><th>Key</th><th>Value</th></tr>
+      {% for k, v in config.items %}
+        <tr><td><code>{{ k }}</code></td><td>{{ v }}</td></tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p class="muted">No configuration detected. The daemon stores its settings in the system service store.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h1>Detected installation</h1>
+  <p><span class="muted">Config file:</span>
+    {% if config %}<code>{{ conf_path }}</code>{% else %}<span class="muted">managed by the service</span>{% endif %}
+  </p>
+  <p><span class="muted">Daemon binary:</span>
+    {% if binary %}<code>{{ binary }}</code>{% else %}<span class="muted">not found on PATH</span>{% endif %}
+  </p>
+  <p class="muted">This read-only view reflects the live daemon configuration. To change the profile, use the <a href="{% url 'setup' %}">Setup</a> page.</p>
+</div>
+{% endblock %}

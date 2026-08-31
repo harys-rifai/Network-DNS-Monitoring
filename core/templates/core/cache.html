@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Cache — Network-DNS-Monitoring{% endblock %}
+
+{% block content %}
+<h2 class="muted" style="font-size:13px; text-transform:uppercase; letter-spacing:.04em;">Cache</h2>
+
+<div class="card">
+  <h1>Cache statistics</h1>
+  {% if stats_error %}
+    <p class="error-msg">{{ stats_error }}</p>
+  {% elif stats %}
+    <div class="grid-2">
+      <div><span class="muted">Hits</span><br><strong>{{ stats.hit|default_if_none:0 }}</strong></div>
+      <div><span class="muted">Misses</span><br><strong>{{ stats.miss|default_if_none:0 }}</strong></div>
+    </div>
+  {% else %}
+    <p class="muted">Cache is disabled (no size configured).</p>
+  {% endif %}
+
+  {% if metrics %}
+    <h2 style="margin-top:18px;">Metrics</h2>
+    <table class="data-table">
+      <tr><th>Metric</th><th>Value</th></tr>
+      {% for k, v in metrics.items %}
+        <tr><td>{{ k|capfirst }}</td><td>{{ v }}</td></tr>
+      {% endfor %}
+    </table>
+  {% elif metrics_error %}
+    <p class="muted">{{ metrics_error }}</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h1>Cached entries</h1>
+  {% if keys_error %}
+    <p class="muted">{{ keys_error }}</p>
+  {% elif keys %}
+    <pre>{{ keys }}</pre>
+  {% else %}
+    <p class="muted">No cached entries (the <code>cache-keys</code> command is not registered by this daemon build, or the cache is empty).</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Network-DNS-Monitoring{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="logo">Network-DNS-Monitoring</div>
+    <div class="user">
+      {% if request.user.is_authenticated %}
+        <span class="username">{{ request.user.username }}</span>
+        <a href="{% url 'logout' %}" class="logout" title="Log out">Logout</a>
+      {% else %}
+        <a href="{% url 'login' %}" class="login">Login</a>
+      {% endif %}
+    </div>
+  </header>
+
+  <main class="content">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% if request.user.is_authenticated %}
+  <nav class="dock" role="navigation" aria-label="Main navigation">
+    {% with name=request.resolver_match.url_name %}
+    <a href="{% url 'dashboard' %}" class="dock-item{% if name == 'dashboard' %} active{% endif %}" title="Dashboard">
+      <span class="dock-icon">🖥️</span><span class="dock-label">Dashboard</span>
+    </a>
+    <a href="{% url 'discovery' %}" class="dock-item{% if name == 'discovery' %} active{% endif %}" title="Discovered clients">
+      <span class="dock-icon">🔍</span><span class="dock-label">Discovery</span>
+    </a>
+    <a href="{% url 'cache' %}" class="dock-item{% if name == 'cache' %} active{% endif %}" title="Cache">
+      <span class="dock-icon">📦</span><span class="dock-label">Cache</span>
+    </a>
+    <a href="{% url 'setup' %}" class="dock-item{% if name == 'setup' %} active{% endif %}" title="Setup">
+      <span class="dock-icon">⚙️</span><span class="dock-label">Setup</span>
+    </a>
+    <a href="{% url 'settings_view' %}" class="dock-item{% if name == 'settings_view' %} active{% endif %}" title="Settings">
+      <span class="dock-icon">🎛</span><span class="dock-label">Settings</span>
+    </a>
+    {% endwith %}
+  </nav>
+  {% endif %}
+</body>
+</html>
