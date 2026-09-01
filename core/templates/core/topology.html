@@ -16,6 +16,21 @@
     <p class="muted">Daemon unreachable — graph shows cached state only.</p>
   {% endif %}
 
+  <div class="stats-cards">
+    <div class="stats-card">
+      <div class="value" id="client-count">{{ initial_data.client_count }}</div>
+      <div class="label">Clients</div>
+    </div>
+    <div class="stats-card">
+      <div class="value" id="hit-rate">
+        {% with s=initial_data.cache_stats %}
+          {{ s.hit|default_if_none:0 }} / {{ s.miss|default_if_none:0 }}
+        {% endwith %}
+      </div>
+      <div class="label">Cache hit rate</div>
+    </div>
+  </div>
+
   <div id="topology-graph"></div>
 </div>
 

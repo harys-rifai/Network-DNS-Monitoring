@@ -42,11 +42,12 @@
   <div class="chart-container">
     <canvas id="volume-chart"></canvas>
   </div>
-  <p class="muted" style="margin-top:8px; font-size:12px;">
+  <p class="muted text-sm">
     Cache hits and misses over time (last 20 samples).
   </p>
 </div>
 
+{% if snapshots %}
 <div class="card">
   <h2>Historical snapshots</h2>
   <table class="data-table">
@@ -56,11 +57,23 @@
         <td>{{ s.recorded_at|date:"Y-m-d H:i:s" }}</td>
         <td>{{ s.hits }}</td>
         <td>{{ s.misses }}</td>
-        <td>{% if s.reachable %}<span class="dot-up"></span> Yes{% else %}<span class="dot-down"></span> No{% endif %}</td>
+        <td>
+          {% if s.reachable %}
+            <span class="status-dot dot-up"></span> Yes
+          {% else %}
+            <span class="status-dot dot-down"></span> No
+          {% endif %}
+        </td>
       </tr>
     {% endfor %}
   </table>
 </div>
+{% else %}
+<div class="card">
+  <h2>Historical snapshots</h2>
+  <p class="muted">No historical snapshots yet. Visit the dashboard to start recording.</p>
+</div>
+{% endif %}
 
 <div class="card">
   <h2>Cache statistics</h2>
@@ -106,7 +119,6 @@
   </table>
 </div>
 {% endif %}
-{% endblock %}
 
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -154,4 +166,5 @@
   });
 })();
 </script>
+{% endblock %}
 {% endblock %}

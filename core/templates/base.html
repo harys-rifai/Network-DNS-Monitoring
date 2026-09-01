@@ -11,72 +11,95 @@
 </head>
 <body>
   <div class="app-layout">
-    {% if request.user.is_authenticated %}
-    <nav class="sidebar" role="navigation" aria-label="Main navigation">
-      {% with name=request.resolver_match.url_name %}
-      <ul class="sidebar-nav">
-        <li>
-          <a href="{% url 'dashboard' %}" class="{% if name == 'dashboard' %}active{% endif %}">
-            <span class="sidebar-icon">{% include 'icons/dashboard.svg' %}</span>
-            <span class="sidebar-label">Dashboard</span>
-          </a>
-        </li>
-        <li>
-          <a href="{% url 'discovery' %}" class="{% if name == 'discovery' %}active{% endif %}">
-            <span class="sidebar-icon">{% include 'icons/discovery.svg' %}</span>
-            <span class="sidebar-label">Discovery</span>
-          </a>
-        </li>
-        <li>
-          <a href="{% url 'cache' %}" class="{% if name == 'cache' %}active{% endif %}">
-            <span class="sidebar-icon">{% include 'icons/cache.svg' %}</span>
-            <span class="sidebar-label">Cache</span>
-          </a>
-        </li>
-        <li>
-          <a href="{% url 'analytics' %}" class="{% if name == 'analytics' %}active{% endif %}">
-            <span class="sidebar-icon">{% include 'icons/analytics.svg' %}</span>
-            <span class="sidebar-label">Analytics</span>
-          </a>
-        </li>
-        <li>
-          <a href="{% url 'topology' %}" class="{% if name == 'topology' %}active{% endif %}">
-            <span class="sidebar-icon">{% include 'icons/topology.svg' %}</span>
-            <span class="sidebar-label">Topology</span>
-          </a>
-        </li>
-        <li>
-          <a href="{% url 'setup' %}" class="{% if name == 'setup' %}active{% endif %}">
-            <span class="sidebar-icon">{% include 'icons/setup.svg' %}</span>
-            <span class="sidebar-label">Setup</span>
-          </a>
-        </li>
-        <li>
-          <a href="{% url 'settings_view' %}" class="{% if name == 'settings_view' %}active{% endif %}">
-            <span class="sidebar-icon">{% include 'icons/settings.svg' %}</span>
-            <span class="sidebar-label">Settings</span>
-          </a>
-        </li>
-        <li>
-          <a href="{% url 'ai_assistant' %}" class="{% if name == 'ai_assistant' %}active{% endif %}">
-            <span class="sidebar-icon">{% include 'icons/ai.svg' %}</span>
-            <span class="sidebar-label">AI Assistant</span>
-          </a>
-        </li>
-        <li style="margin-top: 24px;">
-          <a href="{% url 'logout' %}" class="sidebar-label" title="Log out">
-            <span class="sidebar-icon">{% include 'icons/settings.svg' %}</span>
-            Logout
-          </a>
-        </li>
-      </ul>
-      {% endwith %}
-    </nav>
-    {% endif %}
+    <header class="topbar">
+      <div class="logo">
+        <span class="logo-icon">{% include 'icons/analytics.svg' %}</span>
+        Network-DNS-Monitoring
+      </div>
+      <div class="user">
+        <button id="theme-toggle" class="btn btn-ghost btn-sm" title="Toggle theme" aria-label="Toggle theme">
+          <span class="theme-icon">🌙</span>
+        </button>
+        {% if request.user.is_authenticated %}
+          <span class="username">{{ request.user.username }}</span>
+          <a href="{% url 'logout' %}" class="btn btn-ghost btn-sm" title="Log out">Logout</a>
+        {% else %}
+          <a href="{% url 'login' %}" class="btn btn-ghost btn-sm">Login</a>
+        {% endif %}
+      </div>
+    </header>
 
-    <main class="main-content">
-      {% block content %}{% endblock %}
-    </main>
+    <div class="app-body">
+      {% if request.user.is_authenticated %}
+      <nav class="sidebar" role="navigation" aria-label="Main navigation">
+        {% with name=request.resolver_match.url_name %}
+        <ul class="sidebar-nav">
+          <li>
+            <a href="{% url 'dashboard' %}" class="{% if name == 'dashboard' %}active{% endif %}">
+              <span class="sidebar-icon">{% include 'icons/dashboard.svg' %}</span>
+              <span class="sidebar-label">Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'discovery' %}" class="{% if name == 'discovery' %}active{% endif %}">
+              <span class="sidebar-icon">{% include 'icons/discovery.svg' %}</span>
+              <span class="sidebar-label">Discovery</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'cache' %}" class="{% if name == 'cache' %}active{% endif %}">
+              <span class="sidebar-icon">{% include 'icons/cache.svg' %}</span>
+              <span class="sidebar-label">Cache</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'analytics' %}" class="{% if name == 'analytics' %}active{% endif %}">
+              <span class="sidebar-icon">{% include 'icons/analytics.svg' %}</span>
+              <span class="sidebar-label">Analytics</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'topology' %}" class="{% if name == 'topology' %}active{% endif %}">
+              <span class="sidebar-icon">{% include 'icons/topology.svg' %}</span>
+              <span class="sidebar-label">Topology</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'setup' %}" class="{% if name == 'setup' %}active{% endif %}">
+              <span class="sidebar-icon">{% include 'icons/setup.svg' %}</span>
+              <span class="sidebar-label">Setup</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'settings_view' %}" class="{% if name == 'settings_view' %}active{% endif %}">
+              <span class="sidebar-icon">{% include 'icons/settings.svg' %}</span>
+              <span class="sidebar-label">Settings</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'ai_assistant' %}" class="{% if name == 'ai_assistant' %}active{% endif %}">
+              <span class="sidebar-icon">{% include 'icons/ai.svg' %}</span>
+              <span class="sidebar-label">AI Assistant</span>
+            </a>
+          </li>
+          <li class="sidebar-divider">
+            <a href="{% url 'logout' %}" class="sidebar-label">
+              <span class="sidebar-icon">{% include 'icons/settings.svg' %}</span>
+              Logout
+            </a>
+          </li>
+        </ul>
+        {% endwith %}
+      </nav>
+      {% endif %}
+
+      <main class="main-content">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
   </div>
+
+  {% block extra_js %}{% endblock %}
+  <script src="{% static 'js/theme.js' %}"></script>
 </body>
 </html>
