@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Topology — Network-DNS-Monitoring{% endblock %}
+
+{% block content %}
+<h2 class="muted" style="font-size:13px; text-transform:uppercase; letter-spacing:.04em;">Topology</h2>
+
+<div class="card">
+  <h1>Realtime topology</h1>
+  {% if initial_data.daemon_error %}
+    <p class="error-msg">{{ initial_data.daemon_error }}</p>
+  {% elif initial_data.daemon_reachable %}
+    <p class="muted">Connected to the local control socket.</p>
+  {% else %}
+    <p class="muted">Daemon unreachable.</p>
+  {% endif %}
+
+  <div id="topology-view">
+    <div class="grid-2">
+      <div><span class="muted">Clients</span><br><strong id="client-count">{{ initial_data.client_count }}</strong></div>
+      <div><span class="muted">Cache hit rate</span><br>
+        <strong id="hit-rate">
+          {% with h=initial_data.cache_stats.hit m=initial_data.cache_stats.miss %}
+            {% if h and h.m_add == 0 and m == 0 %}0{% else %}{% if m %}{{ h|mul:100|h|div:m }}{% else %}100{% endif %}{% endif %}
+          {% endwith %}
+        </strong>
+      </div>
+    </div>
+
+    {% if initial_data.clients %}
+      <h2 style="margin-top:16px;">Discovered clients</h2>
+      <table class="data-table">
+        <tr><th>Source</th><th>Name</th><th>Addresses</th></tr>
+        {% for c in initial_data.clients %}
+          <tr>
+            <td>{{ c.source }}</td>
+            <td>{{ c.name }}</td>
+            <td>{{ c.addresses|join:", " }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    {% else %}
+      <p class="muted" style="margin-top:16px;">No discovered clients yet.</p>
+    {% endif %}
+  </div>
+</div>
+
+<script src="{% static 'js/topology.js' %}"></script>
+{% endblock %}
