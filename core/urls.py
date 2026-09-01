@@ -10,6 +10,7 @@ urlpatterns = [
     path("dashboard/", views.dashboard, name="dashboard"),
     path("discovery/", views.discovery, name="discovery"),
     path("cache/", views.cache, name="cache"),
+    path("analytics/", views.analytics, name="analytics"),
     path("setup/", views.setup, name="setup"),
     path("settings/", views.settings_view, name="settings_view"),
     path("topology/", views.topology, name="topology"),

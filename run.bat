@@ -26,10 +26,9 @@ if exist ".env" (
   )
 )
 
+rem --- Database fallback: use SQLite if PostgreSQL password is not set. ---
 if not defined NEXTDNS_DB_PASSWORD (
-    echo [!] NEXTDNS_DB_PASSWORD is not set in the environment or in .env.
-    echo     Copy .env.example to .env and set NEXTDNS_DB_PASSWORD, or export it.
-    exit /b 1
+    echo [i] NEXTDNS_DB_PASSWORD not set; falling back to local SQLite database.
 )
 
 python --version >nul 2>&1 || (
@@ -43,10 +42,13 @@ if errorlevel 1 (echo [!] pip install failed. & exit /b 1)
 
 echo [i] Applying database migrations...
 call python manage.py migrate
-if errorlevel 1 (echo [!] Database migration failed. Check the PostgreSQL connection above. & exit /b 1)
+if errorlevel 1 (echo [!] Database migration failed. See the error output above. & exit /b 1)
+
+echo [i] Ensuring a superadmin account exists (admin / admin123)...
+python manage.py shell -c "from django.contrib.auth import get_user_model; u=get_user_model(); u.objects.filter(username='admin').exists() or u.objects.create_superuser('admin', 'admin@example.com', 'admin123')"
 
 echo [i] Starting development server at http://127.0.0.1:%PORT%
-echo     First admin: python manage.py createsuperuser
+echo     Login admin / admin123
 call python manage.py runserver 127.0.0.1:%PORT%
 
 endlocal

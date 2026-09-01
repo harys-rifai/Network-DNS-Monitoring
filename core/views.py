@@ -282,3 +282,62 @@ def topology_stream(request):
             time.sleep(5)
 
     return StreamingHttpResponse(_stream(), content_type="text/event-stream")
+
+
+@login_required
+def analytics(request):
+    """Render the analytics dashboard mirroring my.nextdns.io analytics.
+
+    Shows query volume over time (live + historical snapshots), top domains,
+    top clients, and DNSSEC/DoH summary from the local daemon and persisted
+    CacheStatsSnapshot models.
+    """
+    stats, stats_err = ctl.query("cache-stats")
+    metrics, metrics_err = ctl.query("cache-metrics")
+    discovered, disc_err = ctl.query("discovered")
+
+    clients = {}
+    if isinstance(discovered, dict):
+        for source, names in discovered.items():
+            if isinstance(names, dict):
+                for name, addrs in names.items():
+                    clients.setdefault(name, [])
+                    if isinstance(addrs, list):
+                        clients[name].extend(addrs)
+
+    snapshots = CacheStatsSnapshot.objects.order_by("-recorded_at")[:20]
+
+    time_labels = []
+    hits_series = []
+    misses_series = []
+    for snap in snapshots:
+        time_labels.append(snap.recorded_at.strftime("%H:%M"))
+        hits_series.append(snap.hits)
+        misses_series.append(snap.misses)
+
+    stats_dict = stats if isinstance(stats, dict) else {}
+    total_queries = stats_dict.get("queries", stats_dict.get("total", 0)) or 0
+    total_answers = stats_dict.get("answers", 0) or 0
+
+    top_domains = []
+    metrics_dict = metrics if isinstance(metrics, dict) else {}
+    for key in sorted(metrics_dict):
+        if key.startswith("domain_") or key.startswith("top_"):
+            top_domains.append((key, metrics_dict[key]))
+    top_domains = top_domains[:10] if top_domains else []
+
+    return render(request, "core/analytics.html", {
+        "stats": stats_dict,
+        "stats_error": stats_err,
+        "metrics": metrics_dict,
+        "metrics_error": metrics_err,
+        "clients": clients,
+        "discovered_error": disc_err,
+        "total_queries": total_queries,
+        "total_answers": total_answers,
+        "snapshot_labels": time_labels,
+        "snapshot_hits": hits_series,
+        "snapshot_misses": misses_series,
+        "snapshots": snapshots,
+        "top_domains": top_domains,
+    })

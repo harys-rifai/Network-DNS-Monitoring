@@ -65,6 +65,14 @@ DATABASES = {
     }
 }
 
+_db_password = os.environ.get("NEXTDNS_DB_PASSWORD", "")
+if not _db_password:
+    DATABASES["default"] = {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+        "CONN_MAX_AGE": 0,
+    }
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
