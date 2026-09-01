@@ -1,11 +1,15 @@
+import json
 import re
+import time
 
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.db import transaction
+from django.http import JsonResponse, StreamingHttpResponse
 from django.shortcuts import redirect, render
 
+from . import nextdns_ai as ai
 from . import nextdns_config as cfg
 from . import nextdns_ctl as ctl
 from .models import CacheStatsSnapshot, DaemonStatus, DiscoveredClient, Profile
@@ -182,3 +186,99 @@ def settings_view(request):
         "binary": cfg.binary_path(),
         "conf_path": cfg.config_path(),
     })
+
+
+@login_required
+def ai_assistant(request):
+    """Render the AI assistant chat page."""
+    return render(request, "core/ai.html", {
+        "ai_available": ai.available(),
+        "ai_model": ai.DEFAULT_MODEL,
+    })
+
+
+@login_required
+def ai_chat(request):
+    """Handle a chat message from the AI assistant (AJAX + streaming).
+
+    Expects ``POST`` with a JSON body containing a ``messages`` array (the
+    conversation history, including the new user message) and optionally a
+    ``model`` string.
+    """
+    if request.method != "POST":
+        return JsonResponse({"error": "POST only."}, status=405)
+
+    try:
+        payload = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON body."}, status=400)
+
+    messages = payload.get("messages", [])
+    model = payload.get("model") or ai.DEFAULT_MODEL
+
+    if not ai.available():
+        return JsonResponse({"error": "OpenRouter API key is not configured."}, status=503)
+
+    stream = payload.get("stream", True)
+    if not stream:
+        result = ai.chat(messages, model=model)
+        if result.get("error"):
+            return JsonResponse({"error": result["error"]}, status=502)
+        return JsonResponse({
+            "content": result["content"],
+            "model": result["model"],
+        })
+
+    def _event_stream():
+        for chunk in ai.chat(messages, model=model, stream=True):
+            yield "data: %s\n\n" % json.dumps(chunk)
+
+    return StreamingHttpResponse(_event_stream(), content_type="text/event-stream")
+
+
+def _topology_data():
+    """Gather live daemon data for the topology view.
+
+    Returns a dict that can be JSON-serialised and sent as an SSE event.
+    """
+    stats, stats_err = ctl.query("cache-stats")
+    metrics, metrics_err = ctl.query("cache-metrics")
+    discovered, disc_err = ctl.query("discovered")
+
+    clients = []
+    if isinstance(discovered, dict):
+        for source, names in discovered.items():
+            if isinstance(names, dict):
+                for name, addrs in names.items():
+                    clients.append({"source": source, "name": name, "addresses": list(addrs) if isinstance(addrs, list) else []})
+
+    return {
+        "daemon_reachable": stats_err is None,
+        "daemon_error": stats_err,
+        "cache_stats": stats,
+        "cache_metrics": metrics,
+        "clients": clients,
+        "client_count": len(clients),
+        "timestamp": time.time(),
+    }
+
+
+@login_required
+def topology(request):
+    """Render the realtime DNS topology page."""
+    return render(request, "core/topology.html", {
+        "initial_data": _topology_data(),
+    })
+
+
+@login_required
+def topology_stream(request):
+    """SSE endpoint that pushes topology snapshots at a fixed interval."""
+    def _stream():
+        yield "retry: 3000\ndata: %s\n\n" % json.dumps({"type": "ping"})
+        while True:
+            data = _topology_data()
+            yield "data: %s\n\n" % json.dumps(data)
+            time.sleep(5)
+
+    return StreamingHttpResponse(_stream(), content_type="text/event-stream")

@@ -282,3 +282,21 @@ table.data-table th {
 }
 .auth-card h1 { font-size: 22px; margin: 0 0 22px; }
 .auth-card .links { margin-top: 18px; font-size: 13px; }
+
+/* AI chat */
+.chat-container {
+  max-height: 420px;
+  overflow-y: auto;
+  padding: 10px 6px;
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  background: rgba(0,0,0,0.02);
+}
+.chat-messages { display: flex; flex-direction: column; gap: 4px; }
+.chat-msg { padding: 4px 8px; border-radius: 12px; max-width: 80%; }
+.chat-msg.user { align-self: flex-end; background: rgba(10,132,255,0.12); border-radius:14px 4px 14px 14px; }
+.chat-msg.assistant { align-self: flex-start; background: rgba(0,0,0,0.04); border-radius: 4px 14px 14px 14px; }
+.chat-text { display: block; font-size: 14px; line-height: 1.5; word-break: break-word; white-space: pre-wrap; }
+.chat-text.streaming { opacity: .6; }
+.chat-form { display: flex; gap: 8px; margin-top: 12px; }
+.chat-form input { flex: 1; }

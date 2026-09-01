@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}AI Assistant — Network-DNS-Monitoring{% endblock %}
+
+{% block content %}
+<h2 class="muted" style="font-size:13px; text-transform:uppercase; letter-spacing:.04em;">AI Assistant</h2>
+
+<div class="card">
+  <h1>DNS AI Assistant</h1>
+  {% if not ai_available %}
+    <p class="error-msg">
+      The OpenRouter API key (<code>NEXTDNS_OPENROUTER_API_KEY</code>) is not configured.
+      Add it to your <code>.env</code> or environment to enable AI features.
+    </p>
+  {% else %}
+    <p class="muted">
+      Powered by <a href="https://openrouter.ai" target="_blank">OpenRouter</a> using the
+      <code>{{ ai_model }}</code> router (auto-selects a free model).
+    </p>
+    <p class="muted">
+      Ask about your DNS configuration, discovered clients, cache stats, or general
+      networking questions. The assistant can analyse live daemon output.
+    </p>
+  {% endif %}
+</div>
+
+{% if ai_available %}
+<div class="card">
+  <div id="chat-container" class="chat-container">
+    <div id="chat-messages" class="chat-messages"></div>
+  </div>
+  <form id="ai-chat-form" class="chat-form">
+    {% csrf_token %}
+    <input type="text" id="ai-prompt" placeholder="Ask about your DNS setup..." autocomplete="off" required>
+    <button type="submit" class="btn btn-primary">Send</button>
+  </form>
+</div>
+{% endif %}
+
+<script>
+(function () {
+  var form = document.getElementById("ai-chat-form");
+  if (!form) return;
+
+  var promptInput = document.getElementById("ai-prompt");
+  var messagesEl = document.getElementById("chat-messages");
+  var history = [];
+  var csrf = form.querySelector("[name=csrfmiddlewaretoken]").value;
+
+  function addMessage(role, text) {
+    var div = document.createElement("div");
+    div.className = "chat-msg " + role;
+    var span = document.createElement("span");
+    span.className = "chat-text";
+    span.textContent = text;
+    div.appendChild(span);
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function showTyping() {
+    var div = document.createElement("div");
+    div.className = "chat-msg assistant";
+    var span = document.createElement("span");
+    span.className = "chat-text";
+    span.textContent = "\u2026";
+    div.appendChild(span);
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return span;
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var text = promptInput.value.trim();
+    if (!text) return;
+    promptInput.disabled = true;
+    addMessage("user", text);
+    history.push({role: "user", content: text});
+
+    var contentBox = showTyping();
+    var fullText = "";
+
+    fetch("/ai/chat/", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": csrf,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        messages: history,
+        model: "{{ ai_model }}",
+        stream: true
+      })
+    }).then(function (resp) {
+      if (!resp.ok) {
+        return resp.json().then(function (d) { throw d; });
+      }
+      var reader = resp.body.getReader();
+      var decoder = new TextDecoder();
+      function readChunk(result) {
+        if (result.done) return;
+        var chunk = decoder.decode(result.value, {stream: true});
+        var blocks = chunk.split("\n\n");
+        blocks.forEach(function (block) {
+          if (!block.startsWith("data:")) return;
+          var payload = block.slice(5).trim();
+          try {
+            var data = JSON.parse(payload);
+            if (data.content) {
+              fullText += data.content;
+              contentBox.textContent = fullText;
+              messagesEl.scrollTop = messagesEl.scrollHeight;
+            }
+          } catch (err) { /* ignore parse errors */ }
+        });
+        return reader.read().then(readChunk);
+      }
+      return reader.read().then(readChunk);
+    }).then(function () {
+      contentBox.classList.remove("streaming");
+      history.push({role: "assistant", content: fullText});
+      if (fullText) {
+        addMessage("assistant", fullText);
+      }
+    }).catch(function (err) {
+      contentBox.textContent = "Error: " + (err && err.error ? err.error : err.message || "unknown error");
+      contentBox.classList.remove("streaming");
+    }).finally(function () {
+      promptInput.disabled = false;
+      promptInput.value = "";
+      promptInput.focus();
+    });
+  });
+})();
+</script>
+{% endblock %}

@@ -50,7 +50,6 @@
     <p class="muted">{{ discovered_error }}</p>
   {% elif discovered %}
     <table class="data-table"><tr><th>Client</th><th>Addresses</th></tr>
-      <tr><th>Client</th><th>Addresses</th></tr>
       {% for source, names in discovered.items %}
         {% for name, addrs in names.items %}
           <tr>

@@ -43,6 +43,12 @@
     <a href="{% url 'settings_view' %}" class="dock-item{% if name == 'settings_view' %} active{% endif %}" title="Settings">
       <span class="dock-icon">🎛</span><span class="dock-label">Settings</span>
     </a>
+    <a href="{% url 'topology' %}" class="dock-item{% if name == 'topology' %} active{% endif %}" title="Topology">
+      <span class="dock-icon">🌐</span><span class="dock-label">Topology</span>
+    </a>
+    <a href="{% url 'ai_assistant' %}" class="dock-item{% if name == 'ai_assistant' %} active{% endif %}" title="AI Assistant">
+      <span class="dock-icon">🤖</span><span class="dock-label">AI Assistant</span>
+    </a>
     {% endwith %}
   </nav>
   {% endif %}

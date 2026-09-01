@@ -12,4 +12,8 @@ urlpatterns = [
     path("cache/", views.cache, name="cache"),
     path("setup/", views.setup, name="setup"),
     path("settings/", views.settings_view, name="settings_view"),
+    path("topology/", views.topology, name="topology"),
+    path("topology/stream/", views.topology_stream, name="topology_stream"),
+    path("ai/", views.ai_assistant, name="ai_assistant"),
+    path("ai/chat/", views.ai_chat, name="ai_chat"),
 ]
