@@ -2,7 +2,7 @@
 
 A Django 5 web management interface for **Network-DNS-Monitoring**, mirroring the management surface of the
 [`nextdns`](https://github.com/nextdns/nextdns) CLI daemon: view discovered clients, cache
-statistics, and manage the active profile — all behind a username/password login.
+statistics, analytics dashboards, and manage the active profile — all behind a username/password login.
 
 It is **not** a DNS server. Instead it talks to an already-installed local `nextdns` daemon
 (the Windows service / Linux systemd service / macOS launchd agent) by invoking the
@@ -10,21 +10,27 @@ It is **not** a DNS server. Instead it talks to an already-installed local `next
 the clone small and cross-platform without reimplementing the daemon's named-pipe / unix-socket
 protocol.
 
-The UI is styled macOS-inspired, including a blurred **bottom dock menu** à la Big Sur/Monterey.
+The UI features a **professional sidebar navigation** with clean SVG icons, data-rich cards,
+an interactive **network topology graph**, and a **Chart.js analytics dashboard**.
 
 ---
 
 ## Features
 
 - **Login** with username & password (Django auth) + signup / logout.
-- **macOS-style bottom dock** navigation (Dashboard · Discovery · Cache · Setup · Settings),
-  active-item highlight, hover magnify, vibrancy blur.
+- **Professional sidebar navigation** (Dashboard · Discovery · Cache · Analytics · Topology · Setup · Settings · AI Assistant).
+- **Stats cards** with key metrics on every page.
+- **Analytics dashboard** with Chart.js bar charts showing query volume, cache hits/misses
+  over time, and historical snapshots.
+- **Interactive topology graph** — a force-directed visualization showing clients, the resolver,
+  and upstream connections, with real-time SSE updates.
 - **Live daemon status** via the control commands `cache-stats`, `cache-metrics`, `discovered`.
 - **Setup page** to read the active profile and (when running elevated) set a new profile id
   (`nextdns install -profile=...`) plus daemon restart.
 - **Settings page** dumping the live `nextdns.conf`.
 - **PostgreSQL persistence** of probes (required dependencies, discovered clients, cache
-  snapshots, daemon status).
+  snapshots, daemon status). Falls back to **SQLite** for local development when
+  `NEXTDNS_DB_PASSWORD` is not set.
 
 ---
 
@@ -33,6 +39,7 @@ The UI is styled macOS-inspired, including a blurred **bottom dock menu** à la 
 - Python 3.12+
 - A local Network-DNS-Monitoring installation (`nextdns` / `nextdns.exe` on `PATH` or in `Program Files\NextDNS`)
 - PostgreSQL 12+ listening on `localhost:5008`, database `ddns_network`, user `postgres`
+  (optional — SQLite is used automatically when the password is not provided)
 
 ---
 
@@ -51,17 +58,20 @@ python -m pip install -r requirements.txt
 set NEXTDNS_DB_PASSWORD=Password09!      # Windows PowerShell / cmd
 # export NEXTDNS_DB_PASSWORD=Password09!  # macOS / Linux bash
 
+#    Or skip step 3 entirely — SQLite fallback is automatic.
+
 # 4. apply migrations
 python manage.py migrate
 
-# 5. create an admin account
-python manage.py createsuperuser
-
-# 6. run
+# 5. start the dev server
 python manage.py runserver
+
+#    Or use the bundled script (Windows):
+#    .\run.bat
 ```
 
-Open http://127.0.0.1:8000/ and sign in.
+Open http://127.0.0.1:8090/ and sign in (default admin: `admin` / `admin123` if created
+automatically).
 
 ---
 
@@ -73,7 +83,8 @@ Open http://127.0.0.1:8000/ and sign in.
 | `NEXTDNS_DB_HOST`  | `localhost`    | Database host |
 | `NEXTDNS_DB_PORT`  | `5008`         | Database port |
 | `NEXTDNS_DB_USER`  | `postgres`     | Database user |
-| `NEXTDNS_DB_PASSWORD` | *(unset)* | Database password (**required**) |
+| `NEXTDNS_DB_PASSWORD` | *(unset)* | Database password (if unset, SQLite is used) |
+| `NEXTDNS_PORT`     | `8090`         | Dev server port (run.bat only) |
 
 Secrets are read from the environment — the literal password is never stored in the source tree.
 
@@ -85,19 +96,38 @@ Secrets are read from the environment — the literal password is never stored i
 nextdns-web/
 ├── manage.py
 ├── requirements.txt
-├── nextdns_web/          # project: settings, urls, wsgi/asgi
-    └── core/                 # "Network-DNS-Monitoring" app
-    ├── static/css/style.css   # macOS-themed UI + dock
-    ├── static/js/main.js
+├── run.bat              # Windows dev server script
+├── push.bat             # GitHub push script
+├── nextdns_web/         # project: settings, urls, wsgi/asgi
+│   ├── settings.py
+│   └── urls.py
+└── core/                # "Network-DNS-Monitoring" app
+    ├── static/
+    │   ├── css/style.css    # Professional sidebar + card styling
+    │   └── js/
+    │       ├── main.js
+    │       └── topology.js  # Force-directed graph + SSE client
     ├── templates/
-    │   ├── base.html            # top bar + bottom dock menu
-    │   ├── core/                # dashboard, discovery, cache, setup, settings
-    │   └── registration/        # login, signup
-    ├── nextdns_ctl.py           # shell out to `nextdns <cmd>` (JSON/CLI protocol)
-    ├── nextdns_config.py        # read/write nextdns.conf, locate the binary
-    ├── models.py                # Profile, DiscoveredClient, CacheStatsSnapshot, DaemonStatus
-    ├── views.py                 # auth + pages (login_required), persistence
-    └── admin.py                 # Django admin for the models
+    │   ├── base.html          # Sidebar nav + topbar
+    │   ├── icons/             # SVG icons for dock nav
+    │   ├── core/
+    │   │   ├── dashboard.html
+    │   │   ├── discovery.html
+    │   │   ├── cache.html
+    │   │   ├── analytics.html   # Chart.js analytics dashboard
+    │   │   ├── topology.html    # Network topology graph
+    │   │   ├── setup.html
+    │   │   ├── settings.html
+    │   │   └── ai.html
+    │   └── registration/
+    │       ├── login.html
+    │       └── signup.html
+    ├── nextdns_ctl.py       # Shell out to `nextdns <cmd>` (JSON/CLI protocol)
+    ├── nextdns_config.py    # Read/write nextdns.conf, locate the binary
+    ├── nextdns_ai.py        # OpenRouter AI assistant integration
+    ├── models.py            # Profile, DiscoveredClient, CacheStatsSnapshot, DaemonStatus
+    ├── views.py             # Auth + pages (login_required), persistence
+    └── admin.py             # Django admin for the models
 ```
 
 ### Data flow
@@ -106,36 +136,35 @@ nextdns-web/
 2. The view calls `core/nextdns_ctl.query("cache-stats")` etc., which run the
    real `nextdns` CLI binary (found via `core/nextdns_config.binary_path()`) and
    parse its JSON output. This delegates to the daemon's own control-socket logic.
-3. Results are rendered through templates that extend `base.html` (the dock lives
-   there). Live probes are also persisted to PostgreSQL.
+3. Results are rendered through templates that extend `base.html` (the sidebar nav lives there).
+   Live probes are also persisted to the database.
 
 | CLI command (Go)  | Django page | What it shows |
 |---|---|---|
-| `cache-stats`     | Dashboard, Cache | cache hits/misses + metrics |
-| `cache-keys`      | Cache             | cached entries (if registered) |
-| `discovered`      | Dashboard, Discovery | LAN clients that queried the resolver |
-| `install`/`restart` | Setup           | set profile id, restart daemon |
-| `-config-file`    | Settings          | the on-disk `nextdns.conf` |
+| `cache-stats`     | Dashboard, Analytics, Cache | cache hits/misses + metrics |
+| `cache-metrics`   | Dashboard, Analytics, Cache | detailed metrics (queries, blocks, etc.) |
+| `cache-keys`      | Cache | cached entries (if registered) |
+| `discovered`      | Dashboard, Discovery, Topology, Analytics | LAN clients that queried the resolver |
+| `install`/`restart` | Setup | set profile id, restart daemon |
+| `-config-file`    | Settings | the on-disk `nextdns.conf` |
 
-### On Windows
+### Topology graph
 
-The daemon listens on the named pipe `\\.\pipe\nextdns-cli`. The clone shells out to
-`nextdns.exe`, which speaks that pipe natively — so **no** Python `AF_UNIX`/named-pipe
-client is required. Writing the config (`C:\Program Files\NextDNS\nextdns.conf`) and
-restarting the service require the web process to run **as Administrator**.
+The topology page renders a **force-directed network graph** using vanilla JavaScript
+(no external dependencies). It shows:
 
-### On Linux / macOS
+- **Resolver node** (green) — the local Network-DNS-Monitoring daemon
+- **Client nodes** (orange) — discovered LAN clients
+- **Upstream node** (blue, dashed link) — the upstream DNS provider
 
-The daemon listens on `/var/run/nextdns.sock`. The CLI uses `sudo` automatically when
-needed, so the web process may need elevated privileges for `setup`/`restart` actions;
-read-only pages (dashboard, discovery, cache, settings) work as a normal user.
+The graph receives **real-time updates** via Server-Sent Events (SSE) at `/topology/stream/`,
+updating the client count, cache hit rate, and node positions every 5 seconds.
 
----
+### Analytics
 
-## Running as a service
-
-For production, run Django behind gunicorn/uwsgi + a reverse proxy, with the same env vars
-available to the process and a persistent PostgreSQL instance.
+The analytics page uses **Chart.js** (loaded from CDN) to render a bar chart of
+cache hits and misses over the last 20 historical snapshots. Snapshots are persisted
+to the database on each dashboard visit.
 
 ---
 
