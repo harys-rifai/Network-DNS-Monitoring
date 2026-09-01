@@ -70,25 +70,30 @@ button { font-family: inherit; font-size: 14px; }
   background: linear-gradient(135deg, var(--bg-gradient) 0%, var(--bg) 100%);
 }
 
-.app-body {
-  display: flex;
+.main-content {
   flex: 1;
+  padding: 30px 32px;
   min-width: 0;
 }
 
-/* Topbar */
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 10;
+/* Auth pages (no sidebar) */
+body.auth-page .main-content {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  padding: 0;
+}
+
+/* Topbar (used on auth pages only) */
+.topbar {
+  width: 100%;
   padding: 14px 28px;
   background: var(--card);
   border-bottom: 1px solid var(--card-border);
   box-shadow: var(--shadow-sm);
-  transition: background 0.2s ease, border-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 .topbar .logo {
   font-weight: 700;
@@ -108,11 +113,6 @@ button { font-family: inherit; font-size: 14px; }
   align-items: center;
   gap: 12px;
   font-size: 13px;
-}
-
-.topbar .username {
-  font-weight: 600;
-  color: var(--text);
 }
 
 /* Theme toggle */
@@ -144,29 +144,61 @@ button { font-family: inherit; font-size: 14px; }
 
 /* Sidebar */
 .sidebar {
-  width: 240px;
+  width: 230px;
   background: var(--sidebar-bg);
   border-right: 1px solid var(--sidebar-border);
-  padding-top: 64px;
-  position: sticky;
-  top: 0;
+  display: flex;
+  flex-direction: column;
   height: 100vh;
   overflow-y: auto;
   transition: background 0.2s ease, border-color 0.2s ease;
 }
+.sidebar-header {
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--sidebar-border);
+}
+.sidebar-header .logo {
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sidebar-header .logo-icon svg {
+  width: 22px;
+  height: 22px;
+  fill: var(--accent);
+}
+.sidebar-header .user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  font-size: 13px;
+}
+.sidebar-header .username {
+  font-weight: 600;
+  color: var(--text);
+}
+.sidebar-header .logout-btn {
+  padding: 4px 10px;
+  font-size: 12px;
+}
 .sidebar-nav {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 12px 0;
+  flex: 1;
 }
 .sidebar-nav li {
-  margin: 4px 0;
+  margin: 2px 0;
 }
 .sidebar-nav a {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 11px 20px;
+  padding: 10px 22px;
   color: var(--sidebar-text);
   font-size: 13px;
   font-weight: 500;
@@ -187,11 +219,19 @@ button { font-family: inherit; font-size: 14px; }
   content: "";
   position: absolute;
   left: 0;
-  top: 8px;
-  bottom: 8px;
+  top: 10px;
+  bottom: 10px;
   width: 3px;
   background: var(--accent);
   border-radius: 2px;
+}
+.sidebar-divider {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--sidebar-border);
+}
+.sidebar-divider a {
+  color: var(--muted);
 }
 .sidebar-icon {
   width: 18px;
