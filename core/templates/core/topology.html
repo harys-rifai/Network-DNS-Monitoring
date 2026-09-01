@@ -19,14 +19,25 @@
   <div id="topology-view">
     <div class="grid-2">
       <div><span class="muted">Clients</span><br><strong id="client-count">{{ initial_data.client_count }}</strong></div>
-      <div><span class="muted">Cache hit rate</span><br>
+      <div>
+        <span class="muted">Cache hit rate</span><br>
         <strong id="hit-rate">
-          {% with h=initial_data.cache_stats.hit m=initial_data.cache_stats.miss %}
-            {% if h and h.m_add == 0 and m == 0 %}0{% else %}{% if m %}{{ h|mul:100|h|div:m }}{% else %}100{% endif %}{% endif %}
+          {% with s=initial_data.cache_stats %}
+            {{ s.hit|default_if_none:0 }} / {{ s.miss|default_if_none:0 }}
           {% endwith %}
         </strong>
       </div>
     </div>
+
+    {% if initial_data.cache_metrics %}
+      <h2 style="margin-top:16px;">Cache metrics</h2>
+      <table class="data-table">
+        <tr><th>Metric</th><th>Value</th></tr>
+        {% for k, v in initial_data.cache_metrics.items %}
+          <tr><td>{{ k|capfirst }}</td><td>{{ v }}</td></tr>
+        {% endfor %}
+      </table>
+    {% endif %}
 
     {% if initial_data.clients %}
       <h2 style="margin-top:16px;">Discovered clients</h2>
