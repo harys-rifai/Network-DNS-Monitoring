@@ -3,64 +3,70 @@
 {% block title %}Dashboard — Network-DNS-Monitoring{% endblock %}
 
 {% block content %}
-<h2 class="muted" style="font-size:13px; text-transform:uppercase; letter-spacing:.04em;">Dashboard</h2>
+<div class="section-title">Dashboard</div>
 
+{% if cache_stats_error %}
 <div class="card">
-  <h1 style="display:flex; align-items:center;">
-    {% if not cache_stats_error %}
-      <span class="status-dot dot-up"></span> Network-DNS-Monitoring daemon running
-    {% else %}
-      <span class="status-dot dot-down"></span> Network-DNS-Monitoring daemon unreachable
-    {% endif %}
-  </h1>
-  {% if cache_stats_error %}
-    <p class="error-msg">{{ cache_stats_error }}</p>
-  {% else %}
-    <p class="muted">Connected to the local control socket.</p>
-  {% endif %}
+  <h1><span class="status-dot dot-down"></span> Network-DNS-Monitoring daemon unreachable</h1>
+  <p class="error-msg">{{ cache_stats_error }}</p>
+</div>
+{% else %}
+<div class="card">
+  <h1><span class="status-dot dot-up"></span> Network-DNS-Monitoring daemon running</h1>
+  <p class="muted">Connected to the local control socket.</p>
+</div>
+{% endif %}
+
+<div class="stats-cards">
+  <div class="stats-card success">
+    <div class="value">{{ cache_stats.hit|default_if_none:0 }}</div>
+    <div class="label">Cache hits</div>
+  </div>
+  <div class="stats-card warning">
+    <div class="value">{{ cache_stats.miss|default_if_none:0 }}</div>
+    <div class="label">Cache misses</div>
+  </div>
+  <div class="stats-card info">
+    <div class="value">{{ discovered|length|default:0 }}</div>
+    <div class="label">Discovered clients</div>
+  </div>
+  <div class="stats-card info">
+    <div class="value">{{ cache_metrics|length|default:0 }}</div>
+    <div class="label">Cache metrics</div>
+  </div>
 </div>
 
+{% if cache_metrics %}
 <div class="card">
-  <h2>Cache statistics</h2>
-  {% if cache_stats_error %}
-    <p class="muted">No cache statistics available — the daemon may be stopped or metrics disabled.</p>
-  {% elif cache_stats %}
-    <div class="grid-2">
-      <div><span class="muted">Hits</span><br><strong>{{ cache_stats.hit|default_if_none:0 }}</strong></div>
-      <div><span class="muted">Misses</span><br><strong>{{ cache_stats.miss|default_if_none:0 }}</strong></div>
-    </div>
-  {% else %}
-    <p class="muted">Cache is disabled or empty.</p>
-  {% endif %}
-
-  {% if cache_metrics %}
-    <h2 style="margin-top:16px;">Cache metrics</h2>
-    <table class="data-table">
-      <tr><th>Metric</th><th>Value</th></tr>
-      {% for k, v in cache_metrics.items %}
-        <tr><td>{{ k|capfirst }}</td><td>{{ v }}</td></tr>
-      {% endfor %}
-    </table>
-  {% endif %}
+  <h2>Cache metrics</h2>
+  <table class="data-table">
+    <tr><th>Metric</th><th>Value</th></tr>
+    {% for k, v in cache_metrics.items %}
+      <tr><td>{{ k|capfirst }}</td><td>{{ v }}</td></tr>
+    {% endfor %}
+  </table>
 </div>
+{% endif %}
 
+{% if discovered %}
 <div class="card">
   <h2>Discovered clients</h2>
-  {% if discovered_error %}
-    <p class="muted">{{ discovered_error }}</p>
-  {% elif discovered %}
-    <table class="data-table"><tr><th>Client</th><th>Addresses</th></tr>
-      {% for source, names in discovered.items %}
-        {% for name, addrs in names.items %}
-          <tr>
-            <td>{{ name }}</td>
-            <td>{{ addrs|join:", " }}</td>
-          </tr>
-        {% endfor %}
+  <table class="data-table">
+    <tr><th>Client</th><th>Addresses</th></tr>
+    {% for source, names in discovered.items %}
+      {% for name, addrs in names.items %}
+        <tr>
+          <td>{{ name }}</td>
+          <td>{{ addrs|join:", " }}</td>
+        </tr>
       {% endfor %}
-    </table>
-  {% else %}
-    <p class="muted">No clients discovered yet.</p>
-  {% endif %}
+    {% endfor %}
+  </table>
 </div>
+{% else %}
+<div class="card">
+  <h2>Discovered clients</h2>
+  <p class="muted">No clients discovered yet.</p>
+</div>
+{% endif %}
 {% endblock %}

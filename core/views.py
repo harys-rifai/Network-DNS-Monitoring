@@ -340,4 +340,9 @@ def analytics(request):
         "snapshot_misses": misses_series,
         "snapshots": snapshots,
         "top_domains": top_domains,
+        "chart_data_json": json.dumps({
+            "labels": time_labels,
+            "hits": hits_series,
+            "misses": misses_series,
+        }),
     })

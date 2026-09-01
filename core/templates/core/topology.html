@@ -4,7 +4,7 @@
 {% block title %}Topology — Network-DNS-Monitoring{% endblock %}
 
 {% block content %}
-<h2 class="muted" style="font-size:13px; text-transform:uppercase; letter-spacing:.04em;">Topology</h2>
+<div class="section-title">Topology</div>
 
 <div class="card">
   <h1>Realtime topology</h1>
@@ -16,23 +16,11 @@
     <p class="muted">Daemon unreachable — graph shows cached state only.</p>
   {% endif %}
 
-  <div class="grid-2" style="margin-bottom: 16px;">
-    <div><span class="muted">Clients</span><br><strong id="client-count">{{ initial_data.client_count }}</strong></div>
-    <div>
-      <span class="muted">Cache hit rate</span><br>
-      <strong id="hit-rate">
-        {% with s=initial_data.cache_stats %}
-          {{ s.hit|default_if_none:0 }} / {{ s.miss|default_if_none:0 }}
-        {% endwith %}
-      </strong>
-    </div>
-  </div>
-
-  <div id="topology-graph" style="width:100%; height:360px; position:relative; border:1px solid var(--card-border); border-radius:16px; background:rgba(0,0,0,0.02);"></div>
+  <div id="topology-graph"></div>
 </div>
 
 <div class="card">
-  <h2>Discovered clients</h2>
+  <h1>Discovered clients</h1>
   {% if initial_data.clients %}
     <table class="data-table">
       <tr><th>Source</th><th>Name</th><th>Addresses</th></tr>
@@ -51,7 +39,7 @@
 
 {% if initial_data.cache_metrics %}
 <div class="card">
-  <h2>Cache metrics</h2>
+  <h1>Cache metrics</h1>
   <table class="data-table">
     <tr><th>Metric</th><th>Value</th></tr>
     {% for k, v in initial_data.cache_metrics.items %}
@@ -60,7 +48,8 @@
   </table>
 </div>
 {% endif %}
-
-<script src="{% static 'js/topology.js' %}"></script>
 {% endblock %}
 
+{% block extra_head %}
+<script src="{% static 'js/topology.js' %}"></script>
+{% endblock %}

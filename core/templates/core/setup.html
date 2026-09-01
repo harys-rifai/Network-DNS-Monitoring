@@ -3,7 +3,7 @@
 {% block title %}Setup — Network-DNS-Monitoring{% endblock %}
 
 {% block content %}
-<h2 class="muted" style="font-size:13px; text-transform:uppercase; letter-spacing:.04em;">Setup</h2>
+<div class="section-title">Setup</div>
 
 <div class="card">
   <h1>Profile</h1>
@@ -25,12 +25,12 @@
     </strong>
   </p>
 
-  <form method="post" action="{% url 'setup' %}" style="margin-top:14px;">
+  <form method="post" action="{% url 'setup' %}" style="margin-top:16px;">
     {% csrf_token %}
     <div class="field-row">
       <div>
-        <label style="display:block; font-size:12px; color:var(--muted); margin-bottom:6px;">Profile ID (6 hex chars)</label>
-        <input type="text" name="profile" maxlength="6" placeholder="e.g. a1b2c3" value="{{ profile }}" pattern="[0-9a-f]{6}" required>
+        <label for="profile">Profile ID (6 hex chars)</label>
+        <input type="text" id="profile" name="profile" maxlength="6" placeholder="e.g. a1b2c3" value="{{ profile }}" pattern="[0-9a-f]{6}" required>
       </div>
       <div style="align-self:flex-end;">
         <button type="submit" class="btn btn-primary" style="width:100%;">Apply &amp; restart</button>
@@ -42,7 +42,7 @@
 <div class="card">
   <h1>Install instructions</h1>
   <p class="muted">This clone manages an already-installed <code>Network-DNS-Monitoring</code> daemon. To install on this machine:</p>
-  <ul class="muted">
+  <ul class="muted" style="line-height:1.8;">
     <li>Windows: run the bundled <kbd>install.ps1</kbd> as Administrator, or <kbd>nextdns.exe install -profile=abcdef</kbd>.</li>
     <li>Linux/macOS: <kbd>curl -sfL https://nextdns.io/install | sh</kbd>.</li>
   </ul>

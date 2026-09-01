@@ -1,10 +1,9 @@
 {% extends "base.html" %}
-{% load static %}
 
 {% block title %}AI Assistant — Network-DNS-Monitoring{% endblock %}
 
 {% block content %}
-<h2 class="muted" style="font-size:13px; text-transform:uppercase; letter-spacing:.04em;">AI Assistant</h2>
+<div class="section-title">AI Assistant</div>
 
 <div class="card">
   <h1>DNS AI Assistant</h1>
@@ -27,7 +26,7 @@
 
 {% if ai_available %}
 <div class="card">
-  <div id="chat-container" class="chat-container">
+  <div class="chat-container">
     <div id="chat-messages" class="chat-messages"></div>
   </div>
   <form id="ai-chat-form" class="chat-form">
@@ -37,7 +36,9 @@
   </form>
 </div>
 {% endif %}
+{% endblock %}
 
+{% block extra_head %}
 <script>
 (function () {
   var form = document.getElementById("ai-chat-form");
@@ -64,7 +65,7 @@
     div.className = "chat-msg assistant";
     var span = document.createElement("span");
     span.className = "chat-text";
-    span.textContent = "\u2026";
+    span.textContent = "...";
     div.appendChild(span);
     messagesEl.appendChild(div);
     messagesEl.scrollTop = messagesEl.scrollHeight;

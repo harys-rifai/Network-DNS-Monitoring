@@ -3,7 +3,7 @@
 {% block title %}Analytics — Network-DNS-Monitoring{% endblock %}
 
 {% block content %}
-<h2 class="muted" style="font-size:13px; text-transform:uppercase; letter-spacing:.04em;">Analytics</h2>
+<div class="section-title">Analytics</div>
 
 <div class="card">
   <h1>Analytics dashboard</h1>
@@ -18,31 +18,48 @@
   {% endif %}
 </div>
 
-<div class="card">
-  <h2>Query volume</h2>
-  <div class="grid-2">
-    <div><span class="muted">Queries</span><br><strong>{{ total_queries|default_if_none:0 }}</strong></div>
-    <div><span class="muted">Answers</span><br><strong>{{ total_answers|default_if_none:0 }}</strong></div>
+<div class="stats-cards">
+  <div class="stats-card success">
+    <div class="value">{{ total_queries|default_if_none:0 }}</div>
+    <div class="label">Total queries</div>
   </div>
+  <div class="stats-card warning">
+    <div class="value">{{ total_answers|default_if_none:0 }}</div>
+    <div class="label">Total answers</div>
+  </div>
+  <div class="stats-card">
+    <div class="value">{{ stats.hit|default_if_none:0 }}</div>
+    <div class="label">Cache hits</div>
+  </div>
+  <div class="stats-card">
+    <div class="value">{{ stats.miss|default_if_none:0 }}</div>
+    <div class="label">Cache misses</div>
+  </div>
+</div>
 
-  {% if snapshot_labels %}
-    <h2 style="margin-top:16px;">Cache hits / misses (last 20 samples)</h2>
-    <div style="font-size:12px; color:var(--muted); margin-bottom:8px;">
-      Samples are recorded every time the dashboard is loaded or the topology updates.
-    </div>
-    <table class="data-table">
-      <tr><th>Sample time</th><th>Hits</th><th>Misses</th></tr>
-      {% for s in snapshots %}
-        <tr>
-          <td>{{ s.recorded_at|date:"H:i:s" }}</td>
-          <td>{{ s.hits }}</td>
-          <td>{{ s.misses }}</td>
-        </tr>
-      {% endfor %}
-    </table>
-  {% else %}
-    <p class="muted" style="margin-top:16px;">No historical snapshots yet. Visit the dashboard to start recording.</p>
-  {% endif %}
+<div class="card">
+  <h2>Query volume trend</h2>
+  <div class="chart-container">
+    <canvas id="volume-chart"></canvas>
+  </div>
+  <p class="muted" style="margin-top:8px; font-size:12px;">
+    Cache hits and misses over time (last 20 samples).
+  </p>
+</div>
+
+<div class="card">
+  <h2>Historical snapshots</h2>
+  <table class="data-table">
+    <tr><th>Timestamp</th><th>Hits</th><th>Misses</th><th>Reachable</th></tr>
+    {% for s in snapshots %}
+      <tr>
+        <td>{{ s.recorded_at|date:"Y-m-d H:i:s" }}</td>
+        <td>{{ s.hits }}</td>
+        <td>{{ s.misses }}</td>
+        <td>{% if s.reachable %}<span class="dot-up"></span> Yes{% else %}<span class="dot-down"></span> No{% endif %}</td>
+      </tr>
+    {% endfor %}
+  </table>
 </div>
 
 <div class="card">
@@ -89,4 +106,52 @@
   </table>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% if chart_data_json %}
+<script type="application/json" id="chart-data">{{ chart_data_json|safe }}</script>
+{% endif %}
+<script>
+(function () {
+  var ctx = document.getElementById('volume-chart');
+  if (!ctx) return;
+
+  var dataEl = document.getElementById('chart-data');
+  var data = dataEl ? JSON.parse(dataEl.textContent) : {labels: [], hits: [], misses: []};
+
+  new Chart(ctx.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: data.labels.length ? data.labels : ['No data'],
+      datasets: [
+        {
+          label: 'Hits',
+          data: data.hits.length ? data.hits : [0],
+          backgroundColor: 'rgba(16, 185, 135, 0.7)',
+          borderColor: 'rgba(16, 185, 135, 1)',
+          borderWidth: 1
+        },
+        {
+          label: 'Misses',
+          data: data.misses.length ? data.misses : [0],
+          backgroundColor: 'rgba(245, 159, 11, 0.7)',
+          borderColor: 'rgba(245, 159, 11, 1)',
+          borderWidth: 1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' } },
+      scales: {
+        y: { beginAtZero: true, grid: { display: false } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+})();
+</script>
 {% endblock %}
